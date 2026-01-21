@@ -1,0 +1,19 @@
+[Unit]
+Description=OurCalendar Node server
+After=network.target
+
+[Service]
+Type=simple
+User=lizadmin
+WorkingDirectory=/home/lizadmin/ourcalendar/server
+Environment=PORT=6002
+ExecStart=/bin/bash /home/lizadmin/ourcalendar/server/start.sh
+Restart=on-failure
+RestartSec=5
+# Optional: log to journal/syslog
+StandardOutput=journal
+StandardError=journal
+SyslogIdentifier=ourcalendar
+
+[Install]
+WantedBy=multi-user.target

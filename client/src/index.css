@@ -1,0 +1,220 @@
+html,body,#root{height:100%;margin:0}
+:root{
+	--bg: #ffffff;
+	--card: #ffffff;
+	--border: #e6eef6; /* subtle */
+	--light-border: #eee;
+	--text: #0f1720;
+	--overlay: rgba(0,0,0,0.28);
+	--primary: #0f62fe;
+	--switch-bg: #a8aaac; /* light grey for toggle background */
+	--button-border: #c0c6cc; /* slightly darker for contrast in light */
+	--input-border: #cbd2d8;
+	--button-border-width: 2px;
+}
+
+[data-theme='dark']{
+	--bg: #07111a;
+	--card: #071420;
+	--border: #22303a;
+	--light-border: #12202a;
+	--text: #e6eef6;
+	--overlay: rgba(2,6,23,0.6);
+	--primary: #184b9a;
+	--event-bg: rgba(24,75,154,0.06);
+	--switch-bg: #0e1720; /* darker grey for dark mode switch */
+	--button-border: #2b3a45; /* stronger contrast in dark */
+	--input-border: #27343a;
+}
+
+	:root{
+		--event-bg: rgba(15,99,255,0.06);
+	}
+
+body{background:var(--bg);font-family:Inter, system-ui, Arial;color:var(--text)}
+h1{margin:0 0 1rem}
+
+/* basic elements */
+button{font-family:inherit}
+input,textarea,select{font-family:inherit}
+
+/* apply stronger, rounded borders to interactive controls */
+button{ border: var(--button-border-width) solid var(--button-border); border-radius:10px }
+input,textarea,select{ border: 1px solid var(--input-border); border-radius:8px }
+
+/* theme toggle placed top-right */
+.theme-controls{position:fixed; right:18px; top:14px; display:flex; gap:8px; align-items:center; z-index:9999}
+
+.switch{
+	position:relative;
+	width:40px; /* two times knob (20px) */
+	height:24px;
+	border-radius:999px;
+	padding:2px; /* minimal padding */
+	display:flex;
+	align-items:center;
+	justify-content:flex-start; /* label left if present */
+	box-sizing: border-box;
+		border:1px solid var(--light-border);
+		background: var(--switch-bg);
+	color: var(--text);
+	font-weight:700;
+	cursor:pointer;
+	transition: background-color 360ms ease, color 360ms ease, border-color 360ms ease;
+}
+.switch .knob{
+	position:absolute;
+	width:20px;
+	height:20px;
+	border-radius:50%;
+	top:50%;
+	transform: translateY(-50%);
+	/* place at right edge: calc(total width - right margin - knob width) */
+	left: calc(100% - 22px);
+	display:flex;
+	align-items:center;
+	justify-content:center;
+	background: var(--bg);
+	box-shadow: 0 2px 6px rgba(0,0,0,0.08);
+	transition: transform .28s cubic-bezier(.2,.9,.2,1), right .28s cubic-bezier(.2,.9,.2,1), left .28s cubic-bezier(.2,.9,.2,1), background .28s ease;
+	box-sizing: border-box;
+}
+.switch .knob svg{ width: 14px; height:14px; display:block; color: var(--text); }
+/* always use --text for icon color so it's dark in light mode and light in dark mode */
+.switch[data-state='dark'] .knob svg{ color: var(--text); }
+.switch[data-state='dark']{
+	background: var(--text);
+	color: var(--card);
+	justify-content:flex-end; /* move label to the right if present */
+	padding:2px; /* minimal padding */
+}
+.switch[data-state='dark'] .knob{
+	left:2px; right:auto;
+	background: var(--card);
+	transform: translateY(-50%);
+}
+
+/* smooth theme transitions for the page */
+body, body * {
+	transition: background-color 420ms ease, color 420ms ease, border-color 420ms ease, box-shadow 420ms ease;
+}
+
+.settings-button{
+	width:40px; height:40px; border-radius:999px; border:1px solid var(--light-border); background:var(--card); display:flex; align-items:center; justify-content:center; cursor:pointer;
+}
+
+/* settings overlay and pane */
+.settings-overlay{position:fixed;inset:0;background:var(--overlay);z-index:9998;opacity:0;pointer-events:none;transition:opacity 220ms ease}
+.settings-overlay.show{opacity:1;pointer-events:auto}
+.settings-pane{position:fixed;right:-360px;top:0;bottom:0;width:340px;max-width:calc(100% - 40px);background:var(--card);border-left:1px solid var(--border);box-shadow:-10px 0 30px rgba(0,0,0,0.12);transition:right 320ms cubic-bezier(.2,.9,.2,1);z-index:9999;padding:18px;display:flex;flex-direction:column;gap:12px;overflow:auto}
+.settings-pane.show{right:0}
+.settings-pane .heading{display:flex;align-items:center;justify-content:space-between}
+.settings-section{margin-top:8px}
+.settings-section h3{margin:0 0 8px}
+.settings-field{display:flex;flex-direction:column;gap:6px;margin-bottom:8px}
+.settings-actions{display:flex;gap:8px;margin-top:8px}
+.settings-avatar{width:56px;height:56px;border-radius:8px;object-fit:cover;border:1px solid var(--light-border)}
+
+/* settings divider */
+.settings-divider{height:1px;background:var(--light-border);opacity:0.9;margin:10px 0;width:100%}
+
+/* unified button styles */
+.btn{display:inline-flex;align-items:center;justify-content:center;border-radius:10px;padding:6px 10px;border:var(--button-border-width) solid var(--button-border);background:transparent;color:var(--text);cursor:pointer;font-family:inherit;transition:background-color 200ms ease,color 200ms ease,border-color 200ms ease,box-shadow 200ms ease}
+.btn.primary{background:var(--primary);color:#fff;border:none;box-shadow:0 1px 2px rgba(0,0,0,0.06)}
+.btn.small{padding:6px 8px;font-size:12px}
+.btn.block{display:block;width:100%}
+.btn.icon{width:32px;height:32px;border-radius:16px;padding:0;font-weight:bold;font-size:16px;display:inline-flex;align-items:center;justify-content:center}
+.btn[disabled]{background:var(--text);color:var(--card);border-color:var(--text);cursor:default;opacity:1}
+.btn.ghost{background:transparent;border:1px solid var(--border)}
+
+/* checkbox theming */
+input[type="checkbox"]{width:16px;height:16px;accent-color:var(--primary)}
+
+/* use border-box everywhere to keep 100% widths from overflowing */
+html { box-sizing: border-box }
+*, *::before, *::after { box-sizing: inherit }
+
+/* modal dialog helper */
+.modal-dialog{width:100%;max-width:520px;max-height:calc(100vh - 40px);overflow:auto;padding:20px;background:var(--card);color:var(--text);border-radius:12px}
+.modal-overlay{position:fixed;left:0;top:0;right:0;bottom:0;display:flex;align-items:center;justify-content:center;background:var(--overlay);z-index:10000}
+
+/* ensure inputs inside settings and modals don't overflow */
+.settings-pane input, .settings-pane textarea, .settings-pane select, .modal-dialog input, .modal-dialog textarea, .modal-dialog select{width:100%;}
+
+/* avoid horizontal resizing and overflow in modals and settings */
+.modal-dialog textarea, .settings-pane textarea{resize:vertical; min-width:0}
+.modal-dialog img, .settings-pane img{max-width:100%;height:auto}
+
+/* Mobile-specific styling (only applies under narrow viewports) */
+@media (max-width: 640px) {
+	:root{
+		--mobile-scale: 1.06;
+		--mobile-font: 18px;
+		--primary: #0b5ed7; /* slightly stronger for mobile contrast */
+		--button-border-width: 1px;
+	}
+
+	/* avoid horizontal scrolling on mobile */
+	body { overflow-x: hidden; }
+
+	/* root calendar layout stacks vertically on mobile */
+		.calendar-root { display:flex !important; flex-direction:column !important; gap:10px !important; padding:8px 10px !important; max-width:100vw }
+	.calendar-root > .calendar-main { width:100% !important; flex: 1 1 auto !important }
+	.calendar-root > .calendar-sidebar { width:100% !important; order: 99; padding:0 !important; margin:0 !important }
+
+	/* hide the sidebar content by default (moved into settings pane for mobile) */
+	.calendar-sidebar { display:none }
+
+	/* make title and today's date more prominent and span full width */
+	.calendar-root .today-bar { display:block !important; width:100% !important; font-size:16px !important; font-weight:800 !important; text-align:left; margin-top:8px }
+
+		/* toolbar buttons -> hide full button list and show compact select (visible via .mobile-view-select) */
+		.view-buttons { display:none !important }
+		.mobile-view-select { display:block !important; width:140px; font-size:15px; padding:8px; border-radius:10px; border:1px solid var(--input-border); background:var(--card); color:var(--text) }
+
+	/* calendar grids: ensure 7 equal columns and smaller gaps to fit narrow screens */
+	.month-grid, .week-grid { grid-template-columns: repeat(7, 1fr) !important; gap:6px !important }
+	.month-grid > div, .week-grid > div { min-height:84px !important; padding:6px !important }
+
+	/* make event labels readable on mobile */
+	.month-grid .event, .week-grid .event { font-size:12px !important; padding:4px !important }
+
+	/* modal/dialog adjustments for mobile */
+	.modal-dialog { max-width: calc(100% - 24px) !important; margin:12px; border-radius:10px }
+
+		/* make month view card edge-to-edge on mobile and remove border/shadow */
+		.calendar-card.month-view {
+			margin: 0 -10px 0 -10px !important; /* compensate for page padding */
+			border: none !important;
+			box-shadow: none !important;
+			border-radius: 0 !important;
+			padding: 6px !important;
+			background: transparent !important;
+		}
+
+			/* replace the static view title with a dynamic today-bar in mobile */
+			.view-title { display:none !important }
+			.toolbar-date { display:none !important }
+			.header-today-bar { display:block; font-size:16px; margin:6px 0 10px }
+			.dayview-title { display:none !important }
+
+	/* unify and enlarge tappable controls */
+	.btn, .btn.small { padding:10px 12px; font-size:15px; border-radius:10px }
+
+	/* settings pane should occupy the full right sheet width on mobile */
+	.settings-pane { width:100% !important; max-width:100% !important; right:-100% }
+	.settings-pane.show { right:0 }
+}
+
+/* hide mobile-only controls by default on desktop */
+.mobile-view-select { display: none }
+
+/* iframe embedding helpers */
+html,body,#root{height:100%;}
+iframe.app-embed{border:0;width:100%;height:100%;display:block}
+
+	/* make the main title responsive */
+	@media (max-width:640px){
+		h1 { font-size: 20px; margin:0 }
+		body { font-size: var(--mobile-font); }
+	}
