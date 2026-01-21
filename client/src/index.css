@@ -6,7 +6,9 @@ html,body,#root{height:100%;margin:0}
 	--light-border: #eee;
 	--text: #0f1720;
 	--overlay: rgba(0,0,0,0.28);
-	--primary: #0f62fe;
+	--primary: #0b5ed7;
+	--accent: #ffc857;
+	--muted: #6b7280;
 	--switch-bg: #a8aaac; /* light grey for toggle background */
 	--button-border: #c0c6cc; /* slightly darker for contrast in light */
 	--input-border: #cbd2d8;
@@ -14,17 +16,19 @@ html,body,#root{height:100%;margin:0}
 }
 
 [data-theme='dark']{
-	--bg: #07111a;
-	--card: #071420;
-	--border: #22303a;
-	--light-border: #12202a;
-	--text: #e6eef6;
-	--overlay: rgba(2,6,23,0.6);
-	--primary: #184b9a;
-	--event-bg: rgba(24,75,154,0.06);
+	--bg: #0d0d0f;
+	--card: #1a1a1c;
+	--border: #2a2a2e;
+	--light-border: #1e1e20;
+	--text: #f0f0f2;
+	--overlay: rgba(0,0,0,0.7);
+	--primary: #7c3aed;
+	--accent: #f59e0b;
+	--muted: #9ca3af;
+	--event-bg: rgba(255,255,255,0.04);
 	--switch-bg: #0e1720; /* darker grey for dark mode switch */
-	--button-border: #2b3a45; /* stronger contrast in dark */
-	--input-border: #27343a;
+	--button-border: #374151; /* stronger contrast in dark */
+	--input-border: #374151;
 }
 
 	:root{
@@ -176,7 +180,19 @@ html { box-sizing: border-box }
 	.month-grid, .week-grid { grid-template-columns: repeat(7, 1fr) !important; gap:6px !important }
 	.month-grid > div, .week-grid > div { min-height:84px !important; padding:6px !important }
 
-	/* make event labels readable on mobile */
+  /* week timeline styles for mobile */
+  .week-container { width:100%; display:flex; }
+  .time-gutter { width:56px; display:flex; flex-direction:column; gap:4px; color:var(--muted); font-size:10px; padding-right:6px }
+  .time-slot { height:40px; display:flex; align-items:flex-start; padding-left:6px }
+  .week-grid { display:grid; grid-template-columns: repeat(7,1fr); gap:4px }
+  .week-day { min-height: calc(40px * 24); background: transparent; border-left:1px solid rgba(255,255,255,0.03); padding:0; position:relative }
+  .week-day-header { font-size:12px; padding:8px 6px; color:var(--muted); }
+  .week-day-body { position:relative; padding:6px; height:100% }
+  .event-pill { position:absolute; display:flex; align-items:center; gap:6px; margin-bottom:0; background: linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02)); border-radius:6px; padding:4px 6px; color:var(--text); border:1px solid rgba(255,255,255,0.05); z-index:1 }
+  .event-accent { width:3px; height:24px; border-radius:1.5px }
+  .event-body { display:flex; flex-direction:column; gap:2px }
+  .event-time { font-size:10px; color:var(--muted) }
+  .event-title { font-size:12px; font-weight:600 }	/* make event labels readable on mobile */
 	.month-grid .event, .week-grid .event { font-size:12px !important; padding:4px !important }
 
 	/* modal/dialog adjustments for mobile */
@@ -197,6 +213,14 @@ html { box-sizing: border-box }
 			.toolbar-date { display:none !important }
 			.header-today-bar { display:block; font-size:16px; margin:6px 0 10px }
 			.dayview-title { display:none !important }
+
+			/* enhanced header today bar for mobile */
+			.header-today-bar{ display:flex; width:100%; align-items:center; justify-content:space-between; padding:10px 12px; background:transparent; font-weight:600; font-size:16px; color:var(--text) }
+
+			/* event pill color and border treatments tuned for light/dark */
+			.event-pill{ background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(0,0,0,0.02)); border:1px solid rgba(0,0,0,0.04) }
+			[data-theme='dark'] .event-pill{ background: linear-gradient(180deg, rgba(255,255,255,0.02), rgba(255,255,255,0.01)); border:1px solid rgba(255,255,255,0.03) }
+			.event-accent{ background: var(--primary) }
 
 	/* unify and enlarge tappable controls */
 	.btn, .btn.small { padding:10px 12px; font-size:15px; border-radius:10px }

@@ -28,7 +28,7 @@ function Login({ onLogin }){
 
   return (
     <div style={{display:'flex',alignItems:'center',justifyContent:'center',height:'100vh',background:'var(--bg)',color:'var(--text)'}}>
-      <form onSubmit={handleSubmit} style={{padding:20,border:'1px solid var(--border)',borderRadius:8,background:'var(--card)'}}>
+      <form onSubmit={handleSubmit} style={{padding:25,border:'1px solid var(--border)',borderRadius:8,background:'var(--card)'}}>
         <h2>Login</h2>
         {error && <div style={{color:'red',marginBottom:10}}>{error}</div>}
         <div style={{marginBottom:10}}>

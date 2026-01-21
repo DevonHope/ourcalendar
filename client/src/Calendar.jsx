@@ -48,6 +48,12 @@ export default function Calendar({ events = [], calendars = [], reload, visibleC
   const t = {
     card: 'var(--card)', border: 'var(--border)', lightBorder: 'var(--light-border)', text: 'var(--text)', overlay: 'var(--overlay)', bg: 'var(--bg)'
   }
+
+  const calMap = useMemo(()=>{
+    const m = new Map()
+    for (const c of calendars) m.set(c.id, c)
+    return m
+  }, [calendars])
   // minimal rounded style tokens
   const cardStyle = { borderRadius: 12, boxShadow: '0 6px 18px rgba(15,23,42,0.06)', padding: 12, background: 'var(--card)' }
   const inputStyle = { width: '100%', padding: '8px 10px', borderRadius: 8, border: `1px solid var(--input-border)`, background: 'var(--bg)', color: 'var(--text)' }
@@ -297,19 +303,19 @@ export default function Calendar({ events = [], calendars = [], reload, visibleC
               {view==='month' && (
                 <div>
                   {/* simple month grid: show days 1..n with events count */}
-                  <MonthGrid cursor={cursor} eventsByDay={eventsByDay} onDayClick={(day)=>{ setCursor(day); setView('day') }} themeVars={t} today={today} />
+                  <MonthGrid cursor={cursor} eventsByDay={eventsByDay} onDayClick={(day)=>{ setCursor(day); setView('day') }} themeVars={t} today={today} calMap={calMap} />
                 </div>
               )}
 
               {view==='week' && (
                 <div>
-                  <WeekView cursor={cursor} eventsByDay={eventsByDay} onSlotClick={(ts)=>{ handleAddEvent(ts) }} themeVars={t} today={today} />
+                  <WeekView cursor={cursor} eventsByDay={eventsByDay} onSlotClick={(ts)=>{ handleAddEvent(ts) }} themeVars={t} today={today} calMap={calMap} />
                 </div>
               )}
 
               {view==='day' && (
                 <div>
-                  <DayView cursor={cursor} events={visibleEvents} onAdd={(ts)=>handleAddEvent(ts)} onEdit={(ev)=>setEditing(ev)} onDelete={(id)=>deleteEvent(id)} themeVars={t} />
+                  <DayView cursor={cursor} events={visibleEvents} onAdd={(ts)=>handleAddEvent(ts)} onEdit={(ev)=>setEditing(ev)} onDelete={(id)=>deleteEvent(id)} themeVars={t} calMap={calMap} />
                 </div>
               )}
             </div>
@@ -359,7 +365,7 @@ export default function Calendar({ events = [], calendars = [], reload, visibleC
   )
 }
 
-function MonthGrid({ className, cursor, eventsByDay, onDayClick, themeVars, today }){
+function MonthGrid({ className, cursor, eventsByDay, onDayClick, themeVars, today, calMap }){
   const d = new Date(cursor)
   d.setDate(1)
   const startDay = d.getDay()
@@ -378,9 +384,13 @@ function MonthGrid({ className, cursor, eventsByDay, onDayClick, themeVars, toda
             {ts ? (
               <div>
                   <div style={{fontSize:12,fontWeight:600}}>{new Date(ts).getDate()}</div>
-                {(eventsByDay[ts]||[]).map(ev => (
-                  <div key={ev.id} style={{fontSize:10, padding:4, borderRadius:6, background: 'var(--event-bg)', marginBottom:4, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>{new Date(ev.start).toLocaleTimeString()} {ev.title}</div>
-                ))}
+                        {(eventsByDay[ts]||[]).map(ev => {
+                          const cal = calMap && calMap.get(ev.calendar_id)
+                          const color = ev.color || (cal && cal.color) || 'var(--accent)'
+                          return (
+                            <div key={ev.id} style={{fontSize:10, padding:4, borderRadius:6, background: color, color:'#fff', marginBottom:4, overflow:'hidden', textOverflow:'ellipsis', whiteSpace:'nowrap'}}>{new Date(ev.start).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})} {ev.title}</div>
+                          )
+                        })}
               </div>
             ) : null}
           </div>
@@ -390,23 +400,92 @@ function MonthGrid({ className, cursor, eventsByDay, onDayClick, themeVars, toda
   )
 }
 
-function WeekView({ className, cursor, eventsByDay, onSlotClick, themeVars, today }){
+function WeekView({ className, cursor, eventsByDay, onSlotClick, themeVars, today, calMap }){
   const start = dayStart(addDays(cursor, -new Date(cursor).getDay()))
   const days = Array.from({length:7}).map((_,i)=>addDays(start,i))
   const t = themeVars || { border:'var(--border)', lightBorder:'var(--light-border)', card:'var(--card)', text:'var(--text)' }
+  const times = Array.from({length:24}).map((_,h)=>h)
+
+  // helper to get hour fraction from timestamp
+  const getHourFraction = (ts) => {
+    const d = new Date(ts)
+    return d.getHours() + d.getMinutes() / 60
+  }
+
+  // helper to get duration in hours
+  const getDurationHours = (ev) => {
+    if (!ev.end) return 1 // default 1 hour
+    return (ev.end - ev.start) / (1000 * 60 * 60)
+  }
+
   return (
-    <div className={className || ''} style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:8}}>
-      {days.map(d => {
-        const isToday = d === today
-        return (
-          <div key={d} style={{border:`${isToday ? '3px' : '1px'} solid ${isToday ? 'var(--primary)' : t.lightBorder}`,minHeight:120,padding:12,background:t.card,color:t.text,borderRadius:10}} onDoubleClick={()=>onSlotClick(d)}>
-            <div style={{fontWeight:600, marginBottom:6}}>{new Date(d).toDateString()}</div>
-            {(eventsByDay[d]||[]).map(ev => (
-              <div key={ev.id} style={{fontSize:12, padding:6, borderRadius:8, background: 'var(--event-bg)', marginBottom:6}}>{new Date(ev.start).toLocaleTimeString()} {ev.title}</div>
-            ))}
-          </div>
-        )
-      })}
+    <div className={`week-container ${className||''}`} style={{display:'flex',gap:8}}>
+      <div className="time-gutter" aria-hidden>
+        {times.map(h => (
+          <div key={h} className="time-slot">{new Date(1970,0,1,h).toLocaleTimeString([], {hour:'numeric'})}</div>
+        ))}
+      </div>
+      <div className="week-grid" style={{display:'grid',gridTemplateColumns:'repeat(7,1fr)',gap:4,flex:1}}>
+        {days.map(d => {
+          const isToday = d === today
+          const dayEvents = (eventsByDay[d]||[]).sort((a,b)=>a.start - b.start)
+          // group overlapping events
+          const positionedEvents = []
+          for (const ev of dayEvents) {
+            const startHour = getHourFraction(ev.start)
+            const duration = getDurationHours(ev)
+            const top = startHour * 40
+            const height = Math.max(duration * 40, 32) // min height
+            let left = 0
+            let width = 100
+            // simple overlap detection: if overlaps with previous, shift left
+            for (const prev of positionedEvents) {
+              if (startHour < prev.startHour + prev.duration && startHour + duration > prev.startHour) {
+                // overlap, adjust
+                if (prev.left === 0) {
+                  left = 50
+                  width = 50
+                  prev.left = 0
+                  prev.width = 50
+                } else {
+                  left = 0
+                  width = 50
+                }
+                break
+              }
+            }
+            positionedEvents.push({ ...ev, top, height, left, width, startHour, duration })
+          }
+          return (
+            <div key={d} className={`week-day ${isToday? 'today':''}`} onDoubleClick={()=>onSlotClick(d)}>
+              <div className="week-day-header">{new Date(d).toLocaleDateString(undefined, { weekday: 'short', month: 'short', day: 'numeric' })}</div>
+              <div className="week-day-body">
+                {positionedEvents.map(ev => {
+                  const cal = calMap && calMap.get(ev.calendar_id)
+                  const accent = ev.color || (cal && cal.color) || 'var(--accent)'
+                  return (
+                    <div key={ev.id} className="event-pill" style={{
+                      top: `${ev.top}px`,
+                      height: `${ev.height}px`,
+                      left: `${ev.left}%`,
+                      width: `${ev.width}%`,
+                      background: 'linear-gradient(180deg, rgba(255,255,255,0.04), rgba(255,255,255,0.02))',
+                      border: `1px solid rgba(255,255,255,0.05)`,
+                      borderLeft: `3px solid ${accent}`
+                    }}>
+                      <div className="event-accent" style={{background: accent}}/>
+                      <div className="event-body">
+                        <div className="event-time">{new Date(ev.start).toLocaleTimeString([], {hour:'numeric',minute:'2-digit'})}</div>
+                        <div className="event-title">{ev.title}</div>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            </div>
+          )
+        })}
+      </div>
     </div>
   )
 }
